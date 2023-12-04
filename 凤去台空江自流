@@ -1,0 +1,33 @@
+PImage 凤去台空江自流;
+int step = 3;
+float startX=0;
+
+void setup(){
+     size(600,337);
+     strokeWeight(step*1.5);
+     frameRate(30);
+     
+     凤去台空江自流=loadImage("凰.jpg");
+     凤去台空江自流.resize(width,height);
+     凤去台空江自流.loadPixels();
+}
+void draw(){
+     
+     startX=mouseX;
+     for(int i=0; i<width; i+=step){
+        for(int j=0; j<height; j+=step){
+           int index = i+j*width;
+           color col=凤去台空江自流.pixels[index];
+           
+           float xoff=0;
+           float yoff=0;
+           if(i>startX){
+              float scl=map(i,startX,startX+width,0,100);
+              xoff=abs(randomGaussian())*scl;
+              yoff=random(-scl*0.5,scl*0.5);
+           }
+           stroke(col);
+           point(i+xoff,j+yoff);
+        }
+     }
+}
