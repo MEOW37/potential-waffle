@@ -1,0 +1,277 @@
+Triangle
+
+class Triangle {
+  PVector[] triVertex;
+  PVector[] contourVertex;
+  float contourRatio = 0.25;
+  PVector center;
+  PVector normal;
+  boolean drawShape;
+  boolean drawContour;
+  
+  Triangle(PVector p1, PVector p2, PVector p3) {
+    triVertex = new PVector[3];
+    contourVertex = new PVector[triVertex.length];
+    triVertex[0] = p1;
+    triVertex[1] = p2;
+    triVertex[2] = p3;
+    center = ct();
+    normal = calcuNormal();
+    contourVertex = contour();
+  }
+
+  void run() {
+    if (drawShape) {
+      if (drawContour) {
+        drawTriangleContour();
+      } else {
+        drawTriangle();
+      }
+      if (showNormalLine) {
+        displayNormal();
+      }
+    }
+  }
+
+  PVector calcuNormal() {
+    PVector p1p2 = PVector.sub(triVertex[1], triVertex[0]);
+    PVector p1p3 = PVector.sub(triVertex[2], triVertex[0]);
+    PVector norm = p1p2.cross(p1p3);
+    return norm;
+  }
+
+  PVector[] contour() {
+    PVector[] ctmp = new PVector[contourVertex.length];
+    for (int i = 0; i < triVertex.length; i ++) {
+      PVector tmp = PVector.sub(triVertex[i], center);
+      float len = tmp.mag();
+      len *= contourRatio;
+      tmp.normalize();
+      tmp.setMag(len);
+      tmp.add(center);
+      ctmp[i] = new PVector(tmp.x, tmp.y, tmp.z);
+    }
+    return ctmp;
+  }
+
+  void drawTriangleContour() {
+    stroke(255);
+    strokeWeight(1);
+    fill(0);
+
+    for (int i = 0; i < 3; i ++) {
+      beginShape(QUAD);
+      vertex(triVertex[i].x, triVertex[i].y, triVertex[i].z);
+      vertex(contourVertex[i].x, contourVertex[i].y, contourVertex[i].z);
+      vertex(contourVertex[(i+1)%3].x, contourVertex[(i+1)%3].y, contourVertex[(i+1)%3].z);
+      vertex(triVertex[(i+1)%3].x, triVertex[(i+1)%3].y, triVertex[(i+1)%3].z);
+      endShape();
+    }
+  }
+
+  void drawTriangle() {
+    beginShape(TRIANGLE);
+    stroke(255);
+    strokeWeight(1);
+    fill(0);
+    for (int i = 0; i < triVertex.length; i ++) {
+      vertex(triVertex[i].x, triVertex[i].y, triVertex[i].z);
+    }
+    endShape();
+  }
+
+  PVector ct() {
+    float cx = 0;
+    float cy = 0;
+    float cz = 0;
+
+    for (int i = 0; i < triVertex.length; i ++) {
+      cx += triVertex[i].x;
+      cy += triVertex[i].y;
+      cz += triVertex[i].z;
+    }
+
+    cx /= 3.0;
+    cy /= 3.0;
+    cz /= 3.0;
+    PVector cv = new PVector(cx, cy, cz);
+
+    return cv;
+  }
+
+  void displayNormal() {
+    PVector nm = new PVector(normal.x, normal.y, normal.z);
+    nm.normalize();
+    nm.setMag(0);
+    nm.add(center);
+    stroke(0);
+    strokeWeight(1);
+    point(center.x, center.y, center.z);
+    stroke(255);
+    strokeWeight(1);
+    line(center.x, center.y, center.z, nm.x, nm.y, nm.z);
+  }
+}
+
+homework
+
+ArrayList<Triangle> triangles;
+
+PVector[][] vp;
+
+int heightSection = 20;
+int laySection = 72;
+float radiu = 200;
+float layerHeight = 20;
+
+float rotateRange = PI*6;
+
+boolean showNormalLine;
+
+float ProbOfShowShape = 0.75;
+float ProbOfShowContourShape = 0.5;
+
+void setup() {
+  size(1200, 1200, P3D);
+  surface.setLocation(50, 50);
+  
+  UI();
+
+  setSystem();
+}
+
+void setSystem() {
+  initiateModelData();
+  buildMesh(vp);
+
+  for (Triangle t : triangles) {
+    if (random(1)<ProbOfShowShape) {
+      t.drawShape = true;
+      if (random(1)<ProbOfShowContourShape){
+        t.drawContour = true;
+      }  
+    }
+  }
+}
+
+void draw() {
+  background(#8BE85E);
+
+  lights();
+
+  for (Triangle t : triangles) {
+    t.run();
+  }
+
+  cam.beginHUD();
+  slider.draw();
+  cam.endHUD();
+
+  if ((mouseX<360 && mouseY< 260) || (mouseX<150 && mouseY > height-150)) {
+    cam.setActive(false);
+  } else {
+    cam.setActive(true);
+  }
+}
+
+void initiateModelData() {
+  vp= new PVector[heightSection][laySection];
+  for (int i = 0; i < vp.length; i ++) {
+    float angSection = TWO_PI / vp[0].length;
+    float sectionPhaseAngle = rotateRange / vp.length;
+    for (int j = 0; j < vp[0].length; j ++) {
+      float xx = radiu * cos(angSection * j + sectionPhaseAngle * i);
+      float yy = radiu * sin(angSection * j + sectionPhaseAngle * i);
+      float zz = layerHeight * i;
+      vp[i][j] = new PVector(xx, yy, zz);
+    }
+  }
+}
+
+void buildMesh(PVector[][] model) {
+  triangles = new ArrayList<Triangle>();
+
+  for (int i = 0; i < model.length-1; i ++) {
+    for (int j = 0; j < model[0].length; j ++) {
+      PVector p1 = new PVector(model[i][j].x, model[i][j].y, model[i][j].z);
+      PVector p2 = new PVector(model[i+1][j].x, model[i+1][j].y, model[i+1][j].z);
+      PVector p3 = new PVector(model[i][(j+1)%model[0].length].x, model[i][(j+1)%model[0].length].y, model[i][(j+1)%model[0].length].z);
+      PVector p4 = new PVector(model[i+1][(j+1)%model[0].length].x, model[i+1][(j+1)%model[0].length].y, model[i+1][(j+1)%model[0].length].z);
+      triangles.add(new Triangle(p1, p3, p2));
+      triangles.add(new Triangle(p2, p3, p4));
+    }
+  }
+}
+
+UI
+
+import controlP5.*;
+import peasy.*;
+
+ControlP5 slider;
+PeasyCam cam;
+
+void UI() {
+  int sliderWidth = 250;
+  int sliderHeight = 25;
+
+  cam = new PeasyCam(this, 800);
+
+  slider = new ControlP5(this, createFont("微软雅黑", 14));
+
+  slider.addSlider("heightSection")
+    .setPosition(20, 20)
+    .setSize(sliderWidth, sliderHeight)
+    .setRange(1,50)
+    .setValue(25)
+    ;
+
+  slider.addSlider("laySection")
+    .setPosition(20, 50)
+    .setSize(sliderWidth, sliderHeight)
+    .setRange(3,9)
+    .setValue(6)
+    ;
+
+  slider.addSlider("layerHeight")
+    .setPosition(20, 80)
+    .setSize(sliderWidth, sliderHeight)
+    .setRange(0, 200)
+    .setValue(20)
+    ;
+
+  slider.addSlider("rotateRange")
+    .setPosition(20, 110)
+    .setSize(sliderWidth, sliderHeight)
+    .setRange(PI*6, PI*8)
+    .setValue(PI*6)
+    ;
+
+  slider.addSlider("ProbOfShowShape")
+    .setPosition(20, 140)
+    .setSize(sliderWidth, sliderHeight)
+    .setRange(0.99999,1)
+    .setValue(1)
+    ;
+
+  slider.addSlider("ProbOfShowContourShape")
+    .setPosition(20, 170)
+    .setSize(sliderWidth, sliderHeight)
+    .setRange(0.999, 1)
+    .setValue(1)
+    ;
+
+  slider.setAutoDraw(false);
+}
+
+
+void controlEvent(ControlEvent theEvent) {
+  if (theEvent.isFrom(slider.getController("heightSection")) ||
+    theEvent.isFrom(slider.getController("laySection")) ||
+    theEvent.isFrom(slider.getController("layerHeight")) ||
+    theEvent.isFrom(slider.getController("rotateRange")) ||
+    theEvent.isFrom(slider.getController("ProbOfShowShape")) ||
+    theEvent.isFrom(slider.getController("ProbOfShowContourShape"))) {
+    setSystem();
+  }
+}
