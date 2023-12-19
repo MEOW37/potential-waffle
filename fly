@@ -1,0 +1,71 @@
+ArrayList<Fly> flies = new ArrayList<>();
+
+void setup(){
+   size(1600,800);
+   imageMode(CENTER);
+   for(int i = 0; i<100; i++){
+      flies.add(new Fly());
+   }
+}
+
+void draw(){
+     background(0);
+     for (Fly fly : flies){
+        fly.update();
+        fly.show();
+     }
+}
+
+class Fly{
+      PGraphics fly;
+      PVector vel, pos;
+      color c;
+      boolean blink;
+      int alpha=255;
+      int alphaChange = 5;
+      Fly(){
+         blink = false;
+         vel = new PVector(random(-1,1), random(-1,1));
+         pos = new PVector(random(0.2,0.8)*width, random(0.2,0.8)*height);
+         fly = createGraphics(120,120);
+         color c = color(random(255), random(255), random(255));
+         fly.beginDraw();
+         for(int i = 0;i<20000; i++){
+            float r = random(100);
+            float angle = random(2*PI);
+            fly.stroke(c,50-r/2);
+            fly.point(fly.width/2+r*cos(angle),fly.height/2+r*sin(angle));
+         }
+         
+         fly.endDraw();
+      }
+      
+  void show(){
+      push();
+      tint(255, alpha);
+      image(fly, pos.x, pos.y);
+      pop();
+  }
+  
+  void update(){
+      if(dist(mouseX,mouseY,pos.x,pos.y)<20&&mousePressed){
+         blink = true;
+         vel = new PVector(random(-1,1)*1.5, random(-1,1)*1.5);
+      }
+      if(blink){
+         
+        if(alpha>255||alpha<0){
+           alphaChange*=-1;
+        }
+        alpha+=alphaChange;
+      }
+      
+      if(pos.x<100||pos.x>width-100){
+         vel.x*=-1;
+      }
+      if(pos.y<100||pos.y>height-100){
+         vel.y*=-1;
+      }
+      pos.add(vel);
+  }
+}
