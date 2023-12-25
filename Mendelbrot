@@ -1,0 +1,30 @@
+int maxIter = 128;
+double minRe = -2.5, maxRe = 1;
+double minIm = -1, maxIm = 1;
+long zoom = (long)1.0;
+
+boolean leftPressed = false, rightPressed = false;
+
+void setup(){
+     size(960,540);
+}
+
+void zoomWindow(double z){
+     double cr = minRe + (maxRe - minRe) * mouseX / width;
+     double ci = minIm + (maxIm - minIm) * mouseY / height;
+     
+     double tempMinr = cr - (maxRe - minRe) / 2 / z;
+     maxRe = cr + (maxRe - minRe)/2/z;
+     minRe = tempMinr;
+     
+     double tempMini = ci - (maxIm - minIm)/2/z;
+     maxIm = ci + (maxIm - minIm )/2/z;
+     minIm = tempMini;
+}
+
+void mouseReleased(){
+    if(leftPressed)leftPressed = false;
+    if(rightPressed)rightPressed = false;
+}
+
+
