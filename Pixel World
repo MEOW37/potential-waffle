@@ -1,0 +1,51 @@
+import processing.core.PApplet;
+import processing.core.PImage;
+import processing.event.MouseEvent;
+import javax.swing.*;
+
+PApplet applet;
+
+void setup() {
+  size(800,600);
+  applet = this;
+  JFrame frame = (JFrame) ((processing.awt.PSurfaceAWT.SmoothCanvas) surface.getNative()).getFrame();
+  JFileChooser chooser = new JFileChooser();
+  int result = chooser.showOpenDialog(frame);
+  if (result == JFileChooser.APPROVE_OPTION) {
+    String imagePath = chooser.getSelectedFile().getAbsolutePath();
+    PImage image = loadImage(imagePath);
+    image.resize(width, height);
+    imageMode(CENTER);
+    image(image, width/2, height/2);
+    int blockSize = 10; 
+    for (int x = 0; x < width; x += blockSize) {
+      for (int y = 0; y < height; y += blockSize) {
+        int blockColor = getBlockColor(image, x, y, blockSize);
+        noStroke();
+        fill(blockColor);
+        rect(x, y, blockSize, blockSize);
+      }
+    }
+  }
+}
+
+
+int getBlockColor(PImage image, int x, int y, int blockSize) {
+  int r = 0, g = 0, b = 0;
+  int count = 0;
+  for (int i = x; i < x + blockSize; i++) {
+    for (int j = y; j < y + blockSize; j++) {
+      if (i < image.width && j < image.height) {
+        int c = image.get(i, j);
+        r += red(c);
+        g += green(c);
+        b += blue(c);
+        count++;
+      }
+    }
+  }
+  r /= count;
+  g /= count;
+  b /= count;
+  return color(r, g, b);
+}
